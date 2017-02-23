@@ -1,0 +1,1 @@
+The Arduino sketch folder, created by default once sketch is saved.
