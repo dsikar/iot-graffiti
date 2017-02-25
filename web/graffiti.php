@@ -12,8 +12,10 @@
 */
 $action = (isset($_GET['action']) ? $_GET['action'] : null);
 if($action == "") {
-        $cmd = "tail -1 /tmp/graffiti.txt";
-        $cmdout = shell_exec($cmd);
+	$cmd = "tail -1 /tmp/graffiti.txt";
+	$cmdout = shell_exec($cmd);
+	list($x, $y, $p) = split("|", $cmdout, 3);	
+	echo "x = $x, y = $y, p = $p\n";			
 	echo $cmdout;
 } else {
 	$x = (isset($_GET['x']) ? $_GET['x'] : null);
