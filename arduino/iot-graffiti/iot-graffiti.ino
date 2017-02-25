@@ -20,21 +20,22 @@
 #define USE_SERIAL Serial
 ESP8266WiFiMulti WiFiMulti;
 
-// Graffiti-able area constants in cm
-#define iXLength 110
-#define iYLength 80
+// Graffiti-able area constants in mm
+#define iXLength 1100
+#define iYLength 800
 // margins
-#define iMarginX 15 
-#define iMarginY 15
+#define iMarginX 150 
+#define iMarginY 150
 // initial XY positions
-#define iInitX 55
-#define iInitY 40
+#define iInitX 550
+#define iInitY 400
 
 // Delimiter character for move commands
 String strDelim = "|";
 
 // Serial debug. Set to 1 to debug.
-#define SERIAL_DEBUG 1
+#define SERIAL_DEBUG 0
+#define SERIAL_DEBUG_2 1
 // Servo objects
 Servo sprayServo;
 // Servo pins
@@ -60,12 +61,13 @@ int iV;
 int iNextPosX = 0; // or initial position e.g. 50
 int iNextPosY = 0; // or initial position e.g. 50
 
-// Current Position - SET
+// Current Position - TODO SET in setup();
 int iCurrPosX = 64; //cm
 int iCurrPosY = 64; //cm
 
-// multiplier ~ turn cm into steps
-int iCoordMult = 47; // (46.94836 steps move 1cm)
+// multiplier ~ turn mm into steps
+// int iCoordMult = 47; // (46.94836 steps move 1cm)
+float fCoordMult = 4.694836; // steps to move 1mm
 
 void setup() {
 
@@ -76,7 +78,7 @@ void setup() {
   
     sprayServo.attach(sprayPin);
     // switch off
-    servoOff(sprayServo);
+    sprayOff(sprayServo);
  
  
     // ESP8266 init routines
@@ -152,9 +154,9 @@ void loop() {
 
         http.end();
     }
-    setHigh(iStepDelay);
-    delay(500);
-    setLow(iStepDelay);
+    setHigh(iLEDPin);
+    delay(1000);
+    setLow(iLEDPin);
 }
 
 /*
@@ -205,7 +207,7 @@ void parse(String strCmd) {
 }
 */
 
-void servoOn(Servo myServo) {
+void sprayOn(Servo myServo) {
   /*
   int pos;
   for(pos = 0; pos <= 90; pos += 1) // goes from 0 degrees to 180 degrees 
@@ -219,7 +221,7 @@ void servoOn(Servo myServo) {
   delay(15);
 }
 
-void servoOff(Servo myServo) {
+void sprayOff(Servo myServo) {
   /*
   int pos;
   for(pos = 90; pos>=0; pos-=1)     // goes from 180 degrees to 0 degrees 
@@ -240,43 +242,6 @@ FUNCTIONS
 *******************/
 
 /*
-  processMsg - process and delete message
-*/
-
-void processMsg(String &txtMsg) {
-   txtMsg.trim();
-  if(SERIAL_DEBUG) {
-    USE_SERIAL.println(txtMsg);
-  }   
-   if(txtMsg == "S1ON") {
-    servoOn(sprayServo);
-    txtMsg = "";
-    return;
-   }  
-   if(txtMsg == "S1OFF") {
-    servoOff(sprayServo);
-    txtMsg = "";
-    return;
-   }  
-   if(txtMsg.substring(0,1) == "H" || txtMsg.substring(0,1) == "V") {
-     setval(txtMsg);
-     txtMsg = "";
-     return;
-   }
-   // x,y coordinates
-   if(txtMsg.indexOf(",") > 0) { // we have a coordinate pair, move stepper
-     parseXY(txtMsg);
-     txtMsg = "";
-   }
-   if(txtMsg == "ART1") {
-    parse("53,53\nS1ON\n75,53\n75,75\n53,75\n53,53\nS1OFF\n64,64\n");
-    txtMsg = "";
-    return;   
-   }     
-   txtMsg = ""; 
-}
-
-/*
   parse - parse message and send to be processed
 */
 
@@ -286,22 +251,8 @@ void parse(String strGraffiti) {
   }
   
   if(isMove(strGraffiti)) {
-    doMove(strGraffiti); 
+    getSetXY(strGraffiti); 
   }
-  
-  /*
-  int iLen = strGraffiti.length();
-  String sLineEnd = "\n";
-  
-  for(int i = 0; i < iLen;) {
-    int iPos = strGraffiti.indexOf(sLineEnd, i);
-    if(iPos < 0) {break;} // last character expected to be newline, if not, stop
-    String txtMsg = strGraffiti.substring(i, iPos);
-    processMsg(txtMsg);
-    //   break;
-    i = iPos + 1;    
-  }
-  */
 }
 
 bool isMove(String strGraffiti) {
@@ -320,19 +271,27 @@ bool isMove(String strGraffiti) {
   return false;
 }
 
-void doMove(String strGraffiti) {
+/*
+  getSetXY values and move if need be
+*/
+
+void getSetXY(String strGraffiti) {
   // format is XX|YY|(1|0), parse
   strGraffiti.trim(); // remove end of line character
   
   int iStart = 0;
   int iEnd = strGraffiti.indexOf(strDelim);
   String strX = strGraffiti.substring(iStart, iEnd);
+  int iX = strX.toInt();
   iStart = iEnd + 1;
   iEnd = strGraffiti.indexOf(strDelim, iStart);
   String strY = strGraffiti.substring(iStart, iEnd);
+  int iY = strY.toInt();
   iStart = iEnd + 1;
   iEnd = strGraffiti.length();
   String strSpray = strGraffiti.substring(iStart, iEnd);
+  int iSpray = strSpray.toInt();
+  
   if(SERIAL_DEBUG) {
     USE_SERIAL.print("strX = *");
     USE_SERIAL.print(strX);
@@ -342,21 +301,21 @@ void doMove(String strGraffiti) {
     USE_SERIAL.println("*");     
     USE_SERIAL.print("strSpray = *");
     USE_SERIAL.print(strSpray); 
+    
+    USE_SERIAL.println("*");
+    USE_SERIAL.print("iX = *");
+    USE_SERIAL.print(iX);
+    USE_SERIAL.println("*");    
+    USE_SERIAL.print("iY = *");
+    USE_SERIAL.print(iY);
     USE_SERIAL.println("*");     
-  }   
-}
-/*
-  parseXY - parse XY coordinates in format XX,YY
-*/
-
-void parseXY(String txtMsg) {
-  String strDelim = ","; // TODO move to config file
-  int iPos = txtMsg.indexOf(strDelim);
-  String strCoord = txtMsg.substring(0, iPos);
-  int iX = strCoord.toInt();
-  strCoord =  txtMsg.substring(iPos+1);
-  int iY = strCoord.toInt();
-  setPos(iX, iY);
+    USE_SERIAL.print("iSpray = *");
+    USE_SERIAL.print(iSpray); 
+    USE_SERIAL.println("*");       
+  }
+  
+  setPos(iX, iY, iSpray);
+  
 }
 
 /*
@@ -379,7 +338,7 @@ void setval(String txtMsg)
     }
     if (cnt % 2 == 0)
     {
-    setPos(iH, iV);
+    setPos(iH, iV, 0);
     delay(15);
     }
 }
@@ -388,32 +347,44 @@ void setval(String txtMsg)
   setPos - set x and y timing belt lengths
 */
 
-void setPos(int iX, int iY) {
+void setPos(int iX, int iY, int iSpray) {
 
   // Origin (0,0) set at top left.
   // Mirror to top right if canvas is mounted on
-  // a wall.
-  // Do not mirror is canvas is mounted on rig.
+  // a wall - spraying against wall
+  // Do not mirror is canvas is mounted on rig -
+  // spraying against rig
   
-  if(SERIAL_DEBUG) {
-    USE_SERIAL.print("x = ");
-    USE_SERIAL.println(iX);
-    USE_SERIAL.print("y = ");
-    USE_SERIAL.println(iY); 
+  // if we are spraying
+  if(iSpray) {
+    if(SERIAL_DEBUG) {
+      USE_SERIAL.print("x = ");
+      USE_SERIAL.println(iX);
+      USE_SERIAL.print("y = ");
+      USE_SERIAL.println(iY); 
+    }
+    
+    int iHypX = getHypX(iX, iY);
+    int iHypY  = getHypY(iX, iY);
+   
+     if(SERIAL_DEBUG_2) {
+      USE_SERIAL.print("iHypX = ");
+      USE_SERIAL.println(iHypX);
+      USE_SERIAL.print("iHypY = ");
+      USE_SERIAL.println(iHypY); 
+    }
+    // position spray can
+    windX(iHypX);
+    windY(iHypY);
+    
+    // press spray
+    sprayOn(sprayServo);
   }
-  
-  int iHypX = getHypX(iX, iY);
-  int iHypY  = getHypY(iX, iY);
- 
-   if(SERIAL_DEBUG) {
-    USE_SERIAL.print("iHypX = ");
-    USE_SERIAL.println(iHypX);
-    USE_SERIAL.print("iHypY = ");
-    USE_SERIAL.println(iHypY); 
+  else {
+    // release spray
+    // don't bother moving
+    sprayOff(sprayServo);
   }
-  
-  windX(iHypX);
-  windY(iHypY);
 }
 
 int getHypX(int iX, int iY) {
@@ -461,7 +432,8 @@ void windX(int iX) {
     }     
     setHigh(iDirX);
   }
-  int iTotalSteps = abs(iMove) * iCoordMult;
+  float fTotalSteps = abs(iMove) * fCoordMult;
+  int iTotalSteps = fTotalSteps;
    if(SERIAL_DEBUG) {
     USE_SERIAL.print("iTotalSteps = ");
     USE_SERIAL.println(iTotalSteps);
@@ -484,7 +456,8 @@ void windY(int iY) {
   } else {
     setLow(iDirY);
   }
-  int iTotalSteps = abs(iMove) * iCoordMult;
+  float fTotalSteps = abs(iMove) *  fCoordMult;
+  int iTotalSteps = fTotalSteps;
   for(int i = 0; i <= iTotalSteps; i++) {
     oneStep(iStepY);
   }

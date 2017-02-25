@@ -1,3 +1,4 @@
 *.ipj
 cad/OldVersions
 cad/parts/OldVersions
+cad/lockfile.lck
