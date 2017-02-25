@@ -14,8 +14,8 @@ $action = (isset($_GET['action']) ? $_GET['action'] : null);
 if($action == "") {
 	$cmd = "tail -1 /tmp/graffiti.txt";
 	$cmdout = shell_exec($cmd);
-	list($x, $y, $p) = split("|", $cmdout, 3);	
-	echo "x = $x, y = $y, p = $p\n";			
+	$vars = explode("|", $cmdout);	
+	echo "x = $vars[0], y = $vars[1], p = $vars[2]\n";			
 	echo $cmdout;
 } else {
 	$x = (isset($_GET['x']) ? $_GET['x'] : null);
