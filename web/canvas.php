@@ -107,7 +107,7 @@
 				<p id="mouse">Mouse State</p>
 			</td>
 			<td>
-				<canvas id = "flip" width = "1100" height = "600">This text is displayed if your browser does not support HTML5 Canvas.</canvas>
+				<canvas id = "flip" width = "1310" height = "800">This text is displayed if your browser does not support HTML5 Canvas.</canvas>
 			</td>
 		<tr>
 		</table>
