@@ -164,7 +164,7 @@ void sprayOn(Servo myServo) {
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
   */
-  int pos = 65;
+  int pos = 0;
   myServo.write(pos);
   delay(15);
 }
@@ -178,7 +178,7 @@ void sprayOff(Servo myServo) {
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
   */
-  int pos = 0;
+  int pos = 65;
   myServo.write(pos);
   delay(15);
 }
