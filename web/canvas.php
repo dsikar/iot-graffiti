@@ -5,6 +5,8 @@
         <meta charset = "utf-8">
 
         <script>
+	    var iPress = 0;
+
             Element.prototype.leftTopScreen = function () {
                 var x = this.offsetLeft;
                 var y = this.offsetTop;
@@ -20,6 +22,15 @@
 
                 return new Array (x, y);
             }
+
+	    document.addEventListener ("mousedown", function () {
+		iPress = 1;
+	    });
+
+            document.addEventListener ("mouseup", function () {
+                iPress = 0;
+            });
+
 
             document.addEventListener ("DOMContentLoaded", function () {
                 var flip = document.getElementById ("flip");
@@ -38,7 +49,8 @@
 					document.getElementById("x").innerHTML = x;
 					document.getElementById("y").innerHTML = y;
 					
-					var iPress = mousePressed();
+					// var iPress = mousePressed();
+					document.getElementById("mouse").innerHTML = iPress;
 					if(iPress) 
 					{
 						context.fillStyle = "rgb(0, 0, 255)";  
