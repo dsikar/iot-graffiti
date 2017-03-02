@@ -22,6 +22,7 @@ for(my $i; $i <= $x; $i++) {
 sub getHypX {
         my ($i, $r) = @_;
         my $b = $mX + $i;
+	# TODO FIX LOGIC - check graffiti.php 
         my $a = $mY + ($y - $r);
         # add 0.5 to round to nearest integer
         return int(sqrt($a * $a + $b * $b) + 0.5);

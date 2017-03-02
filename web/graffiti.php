@@ -1,5 +1,7 @@
 <?php
 /*
+	TODOs
+	1. Update docs to reflect hypothenuse calculating functions
 
         graffiti.php
         Cloud based graffiti artist
